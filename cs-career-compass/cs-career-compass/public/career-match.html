@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title data-en="AI Career Match" data-ar="مطابقة الوظائف بالذكاء الاصطناعي">AI Career Match</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header>
+  <div class="nav">
+    <a class="brand" href="/">CS Career Compass</a>
+    <div class="navlinks">
+      <a class="btn" data-nav-link="/explore.html" href="/explore.html" data-en="Explore Fields" data-ar="استكشاف التخصصات">Explore Fields</a>
+      <a class="btn" data-nav-link="/choose.html" href="/choose.html" data-en="Choose a Field" data-ar="اختر تخصصًا">Choose a Field</a>
+      <a class="btn ai" data-nav-link="/career-match.html" href="/career-match.html" data-en="AI Career Fit" data-ar="فحص الملاءمة الوظيفية">AI Career Fit</a>
+      <a class="btn lang" href="#" data-lang-toggle>English</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="section">
+    <span class="tag">LOCAL AI</span>
+    <h1 data-en="AI Career Match" data-ar="مطابقة الوظائف بالذكاء الاصطناعي">AI Career Match</h1>
+    <p class="muted" data-en="Offline, explainable, skill-first matching across every indexed role."
+       data-ar="مطابقة محلية واضحة تعتمد على المهارات عبر كل الوظائف المفهرسة.">Offline, explainable, skill-first matching.</p>
+
+    <form class="card" id="matchForm">
+      <label><b data-en="Target job (optional)" data-ar="الوظيفة المستهدفة (اختياري)">Target job (optional)</b></label>
+      <input id="job" data-placeholder-en="e.g. Backend Engineer" data-placeholder-ar="مثال: Backend Engineer" placeholder="e.g. Backend Engineer">
+      <div style="height:14px"></div>
+      <label><b data-en="Your current skills" data-ar="مهاراتك الحالية">Your current skills</b></label>
+      <textarea id="skills" data-placeholder-en="Python, SQL, Git, REST, Docker" data-placeholder-ar="Python, SQL, Git, REST, Docker" placeholder="Python, SQL, Git, REST, Docker"></textarea>
+      <p class="source" data-en="Common aliases such as JS, TS, ML, Postgres and React.js are normalized automatically."
+         data-ar="يتم توحيد الاختصارات الشائعة مثل JS وTS وML وPostgres وReact.js تلقائيًا.">Common aliases are normalized automatically.</p>
+      <button class="btn primary" type="submit" id="submitBtn" data-en="Analyze career fit" data-ar="حلّل مدى الملاءمة">Analyze career fit</button>
+    </form>
+
+    <div id="results"></div>
+  </section>
+</main>
+
+<footer class="wrap">CS Career Compass</footer>
+
+<script src="/js/main.js"></script>
+<script>
+CC.initHeader();
+
+const form = document.getElementById("matchForm");
+const resultsEl = document.getElementById("results");
+
+function scoreLabel(label) {
+  return CC.getLang() === "ar" ? label[1] : label[0];
+}
+
+function renderError(msg) {
+  resultsEl.innerHTML = `<section class="card" style="margin-top:20px"><p class="muted">${CC.escapeHtml(msg)}</p></section>`;
+}
+
+function renderResults(result) {
+  const cards = result.results.map(r => {
+    const matched = (r.matched.slice(0, 10).map(x => `<span class="tag">${CC.escapeHtml(x)}</span>`).join(""))
+      || CC.t("None", "لا توجد");
+    const missing = (r.missing.slice(0, 10).map(x => `<span class="tag">${CC.escapeHtml(x)}</span>`).join(""))
+      || CC.t("None", "لا توجد");
+    const fieldLabel = CC.getLang() === "ar" ? r.field_ar : r.field_name;
+    return `
+      <div class="result">
+        <div class="resulttop">
+          <div><span class="tag">${CC.escapeHtml(fieldLabel)}</span><h3>${CC.escapeHtml(r.role)}</h3></div>
+          <div class="score">${r.score}%<div class="source">${CC.escapeHtml(scoreLabel(r.label))}</div></div>
+        </div>
+        <div class="bar"><span style="width:${r.score}%"></span></div>
+        <p class="source">${CC.t("Skill coverage","تغطية المهارات")}: ${r.coverage}% ·
+          ${CC.t("Vector similarity","تشابه المتجهات")}: ${r.cosine}% ·
+          ${CC.t("Title relevance","صلة اسم الوظيفة")}: ${r.title_similarity}%</p>
+        <div><b>${CC.t("Matched skills","المهارات المطابقة")}</b><div>${matched}</div></div>
+        <div style="margin-top:10px"><b>${CC.t("Priority skill gaps","المهارات الناقصة ذات الأولوية")}</b><div>${missing}</div></div>
+      </div>`;
+  }).join("");
+
+  const plan = (result.learning_plan || []).map(x => `<span class="tag">${CC.escapeHtml(x)}</span>`).join("");
+
+  resultsEl.innerHTML = `
+    <section class="section">
+      <div class="grid">
+        <div class="card"><div class="source">${CC.t("Skills detected","المهارات المكتشفة")}</div><div class="metric">${result.user_skills.length}</div></div>
+        <div class="card"><div class="source">${CC.t("Roles evaluated","الوظائف المقيمة")}</div><div class="metric">${result.roles_evaluated}</div></div>
+        <div class="card"><div class="source">${CC.t("Fields evaluated","المجالات المقيمة")}</div><div class="metric">${result.fields_evaluated}</div></div>
+      </div>
+      <h2>${CC.t("Best career matches","أفضل الوظائف المناسبة")}</h2>
+      ${cards}
+    </section>
+    <section class="section card">
+      <h2>${CC.t("Recommended next skills","المهارات المقترحة للخطوة التالية")}</h2>
+      <p class="muted">${CC.t("Prioritized from the gaps across your strongest matches.","مرتبة حسب الأولوية من فجوات أفضل الوظائف المطابقة.")}</p>
+      ${plan}
+    </section>
+    <section class="notice">
+      <b>${CC.t("How the score works","كيف يتم حساب النتيجة")}</b>
+      <p class="muted">${CC.t(
+        "62% weighted skill coverage + 28% weighted cosine similarity + 10% target-title relevance, plus a small transferable-skill signal. Core skills receive higher weights.",
+        "62% تغطية مهارات موزونة + 28% تشابه متجهات موزون + 10% صلة اسم الوظيفة، مع إشارة صغيرة للمهارات القابلة للنقل. المهارات الأساسية لها أوزان أعلى."
+      )}</p>
+      <p class="source">${CC.t("Decision support only; a score is not a hiring guarantee.","أداة لدعم القرار فقط؛ النسبة ليست ضمانًا للتوظيف.")}</p>
+    </section>`;
+}
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const job = document.getElementById("job").value.trim();
+  const skills = document.getElementById("skills").value.trim();
+  if (skills.length < 2) {
+    renderError(CC.t("Enter at least one skill.","أدخل مهارة واحدة على الأقل."));
+    return;
+  }
+  const submitBtn = document.getElementById("submitBtn");
+  submitBtn.disabled = true;
+  resultsEl.innerHTML = `<div class="loading">${CC.t("Analyzing...","جاري التحليل...")}</div>`;
+  try {
+    const result = await CC.postMatch(skills, job, 10);
+    if (result.error) { renderError(result.error); }
+    else { renderResults(result); }
+  } catch (err) {
+    renderError(CC.t("Something went wrong. Is the server running?","حدث خطأ ما. هل السيرفر يعمل؟"));
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

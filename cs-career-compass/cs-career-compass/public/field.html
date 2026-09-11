@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title id="pageTitle">CS Career Compass</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header>
+  <div class="nav">
+    <a class="brand" href="/">CS Career Compass</a>
+    <div class="navlinks">
+      <a class="btn" data-nav-link="/explore.html" href="/explore.html" data-en="Explore Fields" data-ar="استكشاف التخصصات">Explore Fields</a>
+      <a class="btn" data-nav-link="/choose.html" href="/choose.html" data-en="Choose a Field" data-ar="اختر تخصصًا">Choose a Field</a>
+      <a class="btn ai" data-nav-link="/career-match.html" href="/career-match.html" data-en="AI Career Fit" data-ar="فحص الملاءمة الوظيفية">AI Career Fit</a>
+      <a class="btn lang" href="#" data-lang-toggle>English</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="content">
+  <div class="loading" data-en="Loading field..." data-ar="جاري تحميل التخصص...">Loading field...</div>
+</main>
+
+<footer class="wrap">CS Career Compass</footer>
+
+<script src="/js/main.js"></script>
+<script>
+CC.initHeader();
+
+const params = new URLSearchParams(location.search);
+const fieldId = params.get("id") || "";
+const content = document.getElementById("content");
+
+function notFound() {
+  content.innerHTML = `
+    <section class="section">
+      <h1 data-en="Field not found" data-ar="التخصص غير موجود">Field not found</h1>
+      <a class="btn" href="/explore.html" data-en="← Back to fields" data-ar="← العودة للتخصصات">← Back to fields</a>
+    </section>`;
+  CC.applyStaticTranslations();
+}
+
+function itemBlock(items, key) {
+  return `<div class="skillrow"><b>${CC.escapeHtml(CC.itemLabel(items, key))}</b>
+    <p class="muted">${CC.escapeHtml(CC.itemDesc(items, key))}</p></div>`;
+}
+
+function resourceBlock(items, key) {
+  const info = items[key];
+  if (!info) return "";
+  const free = (info.free || []).map(x => `<li>${CC.escapeHtml(x)}</li>`).join("");
+  const paid = (info.paid || []).map(x => `<li>${CC.escapeHtml(x)}</li>`).join("");
+  return `<div class="resource">
+    <b>${CC.escapeHtml(CC.itemLabel(items, key))}</b>
+    <div class="free">${CC.t("Free","مجاني")}</div><ul>${free}</ul>
+    <div class="paid">${CC.t("Paid","مدفوع")}</div><ul>${paid}</ul>
+  </div>`;
+}
+
+function render(f, items) {
+  const name = CC.fieldName(f);
+  const desc = CC.fieldDesc(f);
+  document.getElementById("pageTitle").textContent = name + " — CS Career Compass";
+  const jo = f.junior_overview || {};
+  const juniorOverview = CC.t(jo.en || "", jo.ar || "");
+
+  const skillsHtml = (f.skills || []).map(k => itemBlock(items, k)).join("");
+  const toolsHtml = (f.tools || []).map(k => itemBlock(items, k)).join("");
+  const rolesHtml = (f.roles || []).map((r, i) => `<li><b>${i + 1}.</b> ${CC.escapeHtml(r)}</li>`).join("");
+  const juniorHtml = (f.junior || []).map(x => `<li>${CC.escapeHtml(x)}</li>`).join("");
+  const egHtml = (f.companies_eg || []).map(x => `<span class="tag">${CC.escapeHtml(x)}</span>`).join("")
+    || `<span class="muted">${CC.t("Coming soon.","قريبًا.")}</span>`;
+  const intlHtml = (f.companies_intl || []).map(x => `<span class="tag">${CC.escapeHtml(x)}</span>`).join("")
+    || `<span class="muted">${CC.t("Coming soon.","قريبًا.")}</span>`;
+  const roadHtml = (f.roadmap || []).map(([a, b]) =>
+    `<div class="road"><h3>${CC.escapeHtml(a)}</h3><p class="muted">${CC.escapeHtml(b)}</p></div>`).join("");
+
+  const seen = new Set();
+  const resourceKeys = [...(f.skills || []), ...(f.tools || [])].filter(k => {
+    if (seen.has(k)) return false;
+    seen.add(k); return true;
+  });
+  const resourcesHtml = resourceKeys.map(k => resourceBlock(items, k)).join("");
+
+  content.innerHTML = `
+    <section class="section">
+      <a class="source" href="/explore.html">← ${CC.t("Back to fields","العودة للتخصصات")}</a>
+      <h1>${CC.escapeHtml(name)}</h1>
+      <p class="muted">${CC.escapeHtml(desc)}</p>
+    </section>
+
+    <section class="section card">
+      <h2>${CC.t("What a junior professional does","ماذا يفعل المتخصص الجونيور؟")}</h2>
+      <div class="overviewbox">${CC.escapeHtml(juniorOverview)}</div>
+    </section>
+
+    <div class="two">
+      <section class="card">
+        <h2>${CC.t("Required skills","المهارات المطلوبة")}</h2>
+        ${skillsHtml}
+      </section>
+      <section class="card">
+        <h2>${CC.t("Tools","الأدوات")}</h2>
+        ${toolsHtml}
+      </section>
+    </div>
+
+    <section class="section card">
+      <h2>${CC.t("Career progression (junior → senior, in order)","التدرج الوظيفي (من الجونيور حتى الأعلى، بالترتيب)")}</h2>
+      <ol class="steps">${rolesHtml}</ol>
+      <h3>${CC.t("Typical junior responsibilities","مهام الجونيور")}</h3>
+      <ul class="list">${juniorHtml}</ul>
+    </section>
+
+    <section class="section card">
+      <h2>${CC.t("Companies that hire","الشركات التي توظف في هذا المجال")}</h2>
+      <div class="companygrp"><h4>${CC.t("In Egypt","في مصر")}</h4><div>${egHtml}</div></div>
+      <div class="companygrp"><h4>${CC.t("International (remote / online hiring & training)","دوليًا (عمل/تدريب عن بُعد أونلاين)")}</h4><div>${intlHtml}</div></div>
+      <p class="source">${CC.t(
+        "Company lists are illustrative examples of who typically hires in this field, not exhaustive or guaranteed-open listings; always check each company's current careers page.",
+        "قوائم الشركات أمثلة توضيحية لمن يوظف عادة في هذا المجال وليست قائمة شاملة أو وظائف مضمونة؛ تحقق دائمًا من صفحة الوظائف الحالية لكل شركة."
+      )}</p>
+    </section>
+
+    <section class="section card">
+      <h2>${CC.t("Learning roadmap (deep, ordered)","خريطة التعلم (تفصيلية ومرتبة)")}</h2>
+      ${roadHtml}
+    </section>
+
+    <section class="section card">
+      <h2>${CC.t("Entry-level salary context","سياق راتب مستوى البداية")}</h2>
+      <div class="salary">${CC.escapeHtml(f.salary || "")}</div>
+      <p class="source">${CC.t(
+        "Salary figures are market estimates and can change quickly; verify current offers before making a decision.",
+        "أرقام الرواتب تقديرات سوقية وقد تتغير بسرعة؛ تحقق من العروض الحالية قبل اتخاذ قرار."
+      )}</p>
+    </section>
+
+    <section class="section card">
+      <h2>${CC.t("Learning resources — free and paid, for every skill and tool","مصادر التعلم — مجانية ومدفوعة لكل مهارة وأداة")}</h2>
+      ${resourcesHtml}
+    </section>`;
+}
+
+if (!fieldId) {
+  notFound();
+} else {
+  CC.fetchData().then(data => {
+    const f = data.fields.find(x => x.id === fieldId);
+    if (!f) { notFound(); return; }
+    render(f, data.items);
+  }).catch(() => {
+    content.innerHTML = `<p class="muted">${CC.t("Could not load field data.","تعذّر تحميل بيانات التخصص.")}</p>`;
+  });
+}
+</script>
+</body>
+</html>

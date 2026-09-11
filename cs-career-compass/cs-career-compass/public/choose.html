@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title data-en="Choose a Field" data-ar="اختر تخصصًا">Choose a Field</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header>
+  <div class="nav">
+    <a class="brand" href="/">CS Career Compass</a>
+    <div class="navlinks">
+      <a class="btn" data-nav-link="/explore.html" href="/explore.html" data-en="Explore Fields" data-ar="استكشاف التخصصات">Explore Fields</a>
+      <a class="btn" data-nav-link="/choose.html" href="/choose.html" data-en="Choose a Field" data-ar="اختر تخصصًا">Choose a Field</a>
+      <a class="btn ai" data-nav-link="/career-match.html" href="/career-match.html" data-en="AI Career Fit" data-ar="فحص الملاءمة الوظيفية">AI Career Fit</a>
+      <a class="btn lang" href="#" data-lang-toggle>English</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="section">
+    <h1 data-en="Choose a Field" data-ar="اختر تخصصًا">Choose a Field</h1>
+    <p class="muted" data-en="Select a specialization to see the skills, ordered roadmap, junior expectations, companies and resources."
+       data-ar="اختر تخصصًا لعرض المهارات وخريطة التعلم بالترتيب ومتطلبات الجونيور والشركات ومصادر التعلم.">Select a specialization.</p>
+
+    <form class="card" id="chooseForm">
+      <label><b data-en="Specialization" data-ar="التخصص">Specialization</b></label>
+      <select id="fieldSelect"><option data-en="Loading..." data-ar="جاري التحميل...">Loading...</option></select>
+      <div style="margin-top:14px">
+        <button class="btn primary" type="submit" data-en="Open Roadmap" data-ar="فتح الخريطة">Open Roadmap</button>
+      </div>
+    </form>
+
+    <div class="section">
+      <h2 data-en="What every junior should build" data-ar="ما الذي يجب أن يبنيه الجونيور">What every junior should build</h2>
+      <div class="grid">
+        <div class="card">
+          <h3 data-en="Foundation" data-ar="الأساس">Foundation</h3>
+          <p class="muted" data-en="Programming, problem solving, Git and communication." data-ar="البرمجة وحل المشكلات وGit والتواصل.">Programming, problem solving, Git and communication.</p>
+        </div>
+        <div class="card">
+          <h3 data-en="Projects" data-ar="المشروعات">Projects</h3>
+          <p class="muted" data-en="Build 2–4 focused projects that demonstrate the core skills of the chosen field." data-ar="ابنِ من 2 إلى 4 مشروعات مركزة تثبت مهارات التخصص الأساسية.">Build 2–4 focused projects.</p>
+        </div>
+        <div class="card">
+          <h3 data-en="Job readiness" data-ar="الاستعداد للعمل">Job readiness</h3>
+          <p class="muted" data-en="Practice debugging, documentation, teamwork and technical interviews." data-ar="تدرّب على تصحيح الأخطاء والتوثيق والعمل الجماعي والمقابلات التقنية.">Practice debugging, documentation, teamwork and interviews.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">CS Career Compass</footer>
+
+<script src="/js/main.js"></script>
+<script>
+CC.initHeader();
+
+CC.fetchData().then(data => {
+  const select = document.getElementById("fieldSelect");
+  select.innerHTML = data.fields.map(f =>
+    `<option value="${f.id}">${CC.escapeHtml(CC.fieldName(f))}</option>`
+  ).join("");
+}).catch(() => {
+  document.getElementById("fieldSelect").innerHTML =
+    `<option>${CC.t("Could not load fields","تعذّر تحميل التخصصات")}</option>`;
+});
+
+document.getElementById("chooseForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const id = document.getElementById("fieldSelect").value;
+  if (id) location.href = "/field.html?id=" + encodeURIComponent(id);
+});
+</script>
+</body>
+</html>
